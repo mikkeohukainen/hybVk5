@@ -1,12 +1,13 @@
 import Map from "./screens/Map";
 import Settings from "./screens/Settings";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { settings, icons } from "./myConstants/iconsAndColor";
 import { PaperProvider } from "react-native-paper";
 import MainAppBar from "./components/MainAppBar";
 import * as Location from "expo-location";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { ToastAndroid } from "react-native";
 
 export default function App() {
   const Stack = createNativeStackNavigator();
@@ -19,10 +20,18 @@ export default function App() {
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
+  const [markers, setMarkers] = useState([]);
+
+  useEffect(() => {
+    (async() => {
+      getUserPosition();
+    })()
+  }, []);
 
   const getUserPosition = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     setIcon(icons.location_searching);
+    ToastAndroid.show("Getting your location...", ToastAndroid.SHORT);
     try {
       if (status !== "granted") {
         console.log("Permission to access location was denied");
@@ -61,7 +70,7 @@ export default function App() {
           }}
         >
           <Stack.Screen name="Map">
-            {() => <Map location={location} mapType={mapType} />}
+            {() => <Map location={location} mapType={mapType} markers={markers} setMarkers={setMarkers}/>}
           </Stack.Screen>
           <Stack.Screen name="Settings">
             {() => <Settings mapType={mapType} setMapType={setMapType} />}
